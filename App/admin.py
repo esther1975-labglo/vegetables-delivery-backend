@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import UserProfile, DeliveryBoyProfile, OwnerProfile
 
-# Register your models here.
+admin.site.register(UserProfile)
+admin.site.register(DeliveryBoyProfile)
+admin.site.register(OwnerProfile)
