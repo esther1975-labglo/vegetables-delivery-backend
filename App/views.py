@@ -46,26 +46,9 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
-
-    def get_queryset(self):
-        if self.request.user.profile.role == 'product_owner':
-            return self.queryset.filter(owner=self.request.user)
-        return self.queryset.none()
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        user = self.request.user
-        if user.profile.role == 'user':
-            return self.queryset.filter(user=user)
-        elif user.profile.role == 'delivery_boy':
-            return self.queryset.filter(delivery_boy=user)
-        return self.queryset.none()
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
