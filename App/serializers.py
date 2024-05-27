@@ -41,8 +41,8 @@ class OwnerProfileSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         user = UserSerializer.create(UserSerializer(), validated_data=user_data)
-        user_profile = UserProfile.objects.create(user=user, **validated_data)
-        return user_profile
+        owner_profile = OwnerProfile.objects.create(user=user, **validated_data)
+        return owner_profile
 
 class DeliveryBoyProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
@@ -53,7 +53,7 @@ class DeliveryBoyProfileSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         user = UserSerializer.create(UserSerializer(), validated_data=user_data)
-        user_profile = UserProfile.objects.create(user=user, **validated_data)
+        user_profile = DeliveryBoyProfile.objects.create(user=user, **validated_data)
         return user_profile
 
 
