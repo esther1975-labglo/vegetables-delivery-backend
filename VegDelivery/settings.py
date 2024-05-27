@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-6#%w%tdpo5vq&fzw#!)0y(sh1wwhal^ij4d@+)+dvm+*o1rj@b
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',  
     'django_filters',  
     'rest_framework_simplejwt',
@@ -98,7 +99,7 @@ WSGI_APPLICATION = 'VegDelivery.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.path.join(BASE_DIR / 'db.sqlite3'),
     }
 }
 

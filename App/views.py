@@ -1,48 +1,27 @@
 # views.py
-from rest_framework import status
+from rest_framework import status, viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import OwnerProfile, DeliveryBoyProfile, UserProfile
-from .serializers import OwnerProfileSerializer, DeliveryBoyProfileSerializer, UserProfileSerializer
+from .models import Order, OwnerProfile, DeliveryBoyProfile, Product, UserProfile
+from .serializers import OrderSerializer, OwnerProfileSerializer, DeliveryBoyProfileSerializer, ProductSerializer, UserProfileSerializer
 
-class OwnerRegister(APIView):
-    def post(self, request):
-        serializer = OwnerProfileSerializer(data=request.data)
-        if serializer.is_valid():
-            user_data = serializer.validated_data['user']
-            user = User.objects.create_user(username=user_data['username'], password=user_data['password'])
-            user.email = user_data['email']
-            user.save()
-            owner_profile = OwnerProfile.objects.create(user=user, **serializer.validated_data)
-            return Response({'message': 'Owner registered successfully'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class DeliveryBoyRegister(APIView):
-    def post(self, request):
-        serializer = DeliveryBoyProfileSerializer(data=request.data)
-        if serializer.is_valid():
-            user_data = serializer.validated_data['user']
-            user = User.objects.create_user(username=user_data['username'], password=user_data['password'])
-            user.email = user_data['email']
-            user.save()
-            delivery_boy_profile = DeliveryBoyProfile.objects.create(user=user, **serializer.validated_data)
-            return Response({'message': 'Delivery Boy registered successfully'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class OwnerViewSet(viewsets.ModelViewSet):
+    queryset = OwnerProfile.objects.all()
+    serializer_class = OwnerProfileSerializer
 
-class UserRegister(APIView):
-    def post(self, request):
-        serializer = UserProfileSerializer(data=request.data)
-        if serializer.is_valid():
-            user_data = serializer.validated_data['user']
-            user = User.objects.create_user(username=user_data['username'], password=user_data['password'])
-            user.email = user_data['email']
-            user.save()
-            user_profile = UserProfile.objects.create(user=user, **serializer.validated_data)
-            return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class DeliveryBoyViewSet(viewsets.ModelViewSet):
+    queryset = DeliveryBoyProfile.objects.all()
+    serializer_class = DeliveryBoyProfileSerializer
+
+
+class UserProfileViewSet(viewsets.ModelViewSet):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+
 
 class UserLogin(APIView):
     def post(self, request):
@@ -52,7 +31,7 @@ class UserLogin(APIView):
         if user:
             login(request, user)
             token, created = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key})
+            return Response({'token': token.key, 'username': username})
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -60,3 +39,33 @@ class UserLogout(APIView):
     def post(self, request):
         logout(request)
         return Response({'message': 'Logged out successfully'})
+
+
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    def get_queryset(self):
+        if self.request.user.profile.role == 'product_owner':
+            return self.queryset.filter(owner=self.request.user)
+        return self.queryset.none()
+
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.profile.role == 'user':
+            return self.queryset.filter(user=user)
+        elif user.profile.role == 'delivery_boy':
+            return self.queryset.filter(delivery_boy=user)
+        return self.queryset.none()
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

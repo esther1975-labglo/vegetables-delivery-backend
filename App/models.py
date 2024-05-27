@@ -35,3 +35,36 @@ class UserProfile(models.Model):
     last_name = models.CharField(max_length=50)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     address = models.TextField()
+
+class Product(models.Model):
+    CATEGORY_CHOICES = (
+        ("Vegetable", "Vegetable"),
+        ("Fruit", "Fruit"),
+        ("Nut", "Nut"),
+        ("Dal", "Dal"),
+        ("Meat", "Meat")
+    )
+    owner = models.ForeignKey(OwnerProfile, on_delete=models.CASCADE, related_name='products')
+    name = models.CharField(max_length=100)
+    category = models.CharField(max_length=10, choices=CATEGORY_CHOICES)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity = models.PositiveIntegerField()
+    description = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to="Products")
+
+    def __str__(self):
+        return self.name
+    
+
+class Order(models.Model):
+    STATUS_CHOICES = (
+        ("ordered", "Ordered"),
+        ("shipped", "Shipped"),
+        ("delivered", "Delivered")
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='orders')
+    delivery_boy = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='deliveries')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="ordered")
+    address = models.TextField()
